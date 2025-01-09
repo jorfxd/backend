@@ -41,3 +41,48 @@ class LandingAPI(APIView):
 	        
         # Devuelve el id del objeto guardado
         return Response({"id": new_resource.key}, status=status.HTTP_201_CREATED)
+
+class LandingAPIDetail(APIView):
+
+    name = 'Landing Detail API'
+
+    collection_name = 'Datasos'
+
+    def get(self, request, pk):
+        # Referencia al documento específico
+        ref = db.reference(f'{self.collection_name}/{pk}')
+        data = ref.get()
+
+        if data:
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Documento no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        # Referencia al documento específico
+        ref = db.reference(f'{self.collection_name}/{pk}')
+        
+        # Obtener los datos enviados en la solicitud
+        updated_data = request.data
+
+        # Verificar si el documento existe antes de intentar actualizarlo
+        data = ref.get()
+        
+        if data:
+            ref.update(updated_data)  # Actualizar el documento con los nuevos datos
+            return Response({"message": "Documento actualizado exitosamente", "updated_data": updated_data}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Documento no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        # Referencia al documento específico
+        ref = db.reference(f'{self.collection_name}/{pk}')
+        
+        # Verificar si el documento existe antes de intentar eliminarlo
+        data = ref.get()
+        
+        if data:
+            ref.delete()  # Eliminar el documento
+            return Response({"message": "Documento eliminado exitosamente"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Documento no encontrado"}, status=status.HTTP_404_NOT_FOUND)
