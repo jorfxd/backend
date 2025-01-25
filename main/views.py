@@ -5,6 +5,11 @@ import json
 # Create your views here.
 from django.http import HttpResponse
 
+from django.contrib.auth.decorators import login_required, permission_required
+
+@login_required
+@permission_required('main.index_viewer', raise_exception=True)
+
 def index(request):
     #return HttpResponse("Hello, World!")
     #return render(request, 'main/base.html')
