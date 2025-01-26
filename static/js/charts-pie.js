@@ -44,7 +44,7 @@ countCommentsByHour = (data) => {
 
       const savedTime = record.saved;
       if (!savedTime) {
-        return;
+          return;
       }
 
       // Convertir a formato de hora AM/PM
@@ -56,11 +56,11 @@ countCommentsByHour = (data) => {
 
       // Clasificar en el rango correspondiente
       if (hour >= 0 && hour < 8) {
-        counts[0]++;
+          counts[0]++;
       } else if (hour >= 8 && hour < 16) {
-        counts[1]++;
+          counts[1]++;
       } else {
-        counts[2]++;
+          counts[2]++;
       }
   });
 
