@@ -4,40 +4,22 @@
 const lineConfig = {
   type: 'line',
   data: {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    labels: [], // Se llenará con las fechas
     datasets: [
       {
-        label: 'Organic',
-        /**
-         * These colors come from Tailwind CSS palette
-         * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
-         */
-        backgroundColor: '#0694a2',
+        label: 'Cantidad de respuestas por día',
         borderColor: '#0694a2',
-        data: [43, 48, 40, 54, 67, 73, 70],
+        backgroundColor: '#0694a2',
+        data: [], // Se llenará con las cantidades por día
         fill: false,
-      },
-      {
-        label: 'Paid',
-        fill: false,
-        /**
-         * These colors come from Tailwind CSS palette
-         * https://tailwindcss.com/docs/customizing-colors/#default-color-palette
-         */
-        backgroundColor: '#7e3af2',
-        borderColor: '#7e3af2',
-        data: [24, 50, 64, 74, 52, 51, 65],
-      },
-    ],
+        tension: 0.1
+      }
+    ]
   },
   options: {
     responsive: true,
-    /**
-     * Default legends are ugly and impossible to style.
-     * See examples in charts.html to add your own legends
-     *  */
     legend: {
-      display: false,
+      display: true,
     },
     tooltips: {
       mode: 'index',
@@ -52,20 +34,84 @@ const lineConfig = {
         display: true,
         scaleLabel: {
           display: true,
-          labelString: 'Month',
+          labelString: 'Fecha'
         },
       },
       y: {
         display: true,
         scaleLabel: {
           display: true,
-          labelString: 'Value',
+          labelString: 'Cantidad de respuestas'
         },
       },
     },
   },
 }
-
-// change this to the id of your chart element in HMTL
-const lineCtx = document.getElementById('line')
-window.myLine = new Chart(lineCtx, lineConfig)
+ 
+// Función para contar las respuestas por día
+const countCommentsByDay = (data) => {
+  const counts = {};
+  const labels = [];
+ 
+  Object.values(data).forEach(record => {
+    const savedTime = record.saved;
+    if (!savedTime) {
+      return;
+    }
+ 
+    // Convertir la hora a formato AM/PM
+    let formattedTime = savedTime.replace('a. m.', 'AM').replace('p. m.', 'PM');
+    formattedTime = formattedTime.replace(',', '');
+ 
+    // Formatear la fecha para que JavaScript la entienda
+    const formattedDate = formattedTime.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{1,2}):(\d{2}):(\d{2}) (AM|PM)/,
+      '$3-$2-$1 $4:$5:$6 $7');
+ 
+    const dt = new Date(formattedDate);
+ 
+    // Si la fecha no es válida, ignorarla
+    if (isNaN(dt)) {
+      return;
+    }
+ 
+    // Extraer la fecha en formato YYYY-MM-DD
+    const day = dt.toISOString().split('T')[0];
+ 
+    // Contar las respuestas por día
+    counts[day] = counts[day] ? counts[day] + 1 : 1;
+  });
+ 
+  // Organizar las fechas y extraer las cantidades
+  for (let day in counts) {
+    labels.push(day);
+  }
+  labels.sort();
+ 
+  const countsArray = labels.map(day => counts[day]);
+ 
+  return { labels, counts: countsArray };
+};
+ 
+// Función para actualizar el gráfico
+const updateLineChart = () => {
+  fetch('/api/v1/landing')
+    .then(response => response.json())
+    .then(data => {
+      const { labels, counts } = countCommentsByDay(data);
+ 
+      // Actualizar los datos del gráfico
+      window.myLine.data.labels = labels;
+      window.myLine.data.datasets[0].data = counts;
+ 
+      // Actualizar el gráfico
+      window.myLine.update();
+    })
+    .catch(error => console.error('Error:', error));
+};
+ 
+// Inicializar el gráfico de líneas
+const lineCtx = document.getElementById('line');
+window.myLine = new Chart(lineCtx, lineConfig);
+ 
+// Llamar la función para actualizar el gráfico
+updateLineChart();
