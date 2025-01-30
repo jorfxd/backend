@@ -6,24 +6,29 @@ from collections import Counter
 from datetime import datetime
 
 # Create your views here.
-from django.http import HttpResponse
 
+from api.views import LandingAPI
+
+from rest_framework.request import Request
+
+#from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, permission_required
-
 @login_required
 @permission_required('main.index_viewer', raise_exception=True)
 
 def index(request):
     #return HttpResponse("Hello, World!")
     #return render(request, 'main/base.html')
-    current_url = request.build_absolute_uri()
-    url = current_url + '/api/v1/landing'
-
-    response_http = requests.get(url)
-    response_dict = json.loads(response_http.content)
-
-    print("Endpoint ", url)
-    print("Response ", response_dict)
+    #current_url = request.build_absolute_uri()
+    #url = current_url + '/api/v1/landing'
+    
+    #response_http = requests.get(url)
+    #response_dict = json.loads(response_http.content)
+    dfr_request = Request(request)
+    response= LandingAPI().get(dfr_request)
+    response_dict=response.data
+    #print("Endpoint ", url)
+    #print("Response ", response_dict)
 
     total_responses = len(response_dict.keys())
 
